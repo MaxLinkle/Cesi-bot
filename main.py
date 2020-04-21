@@ -6,7 +6,7 @@ from discord.ext import commands
 from mysql.connector import Error
 
 bot_name = "CESI-Bot"
-token = "NzAwMjUzOTMzNjk5ODU4NDky.Xp6qEg.N0hkkgTCC-bSl5PEloB6h1tDLU4"
+token = ""
 client = commands.Bot(command_prefix="?")
 Client = discord.Client()
 client.remove_command('help')
