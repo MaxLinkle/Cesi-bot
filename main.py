@@ -86,51 +86,75 @@ async def training(ctx, notion: str):
         answerCursor.execute(sql, (questionId, ))
         answerResult = answerCursor.fetchall()
         question = ""
-        juste = 0
 
         for x in questionResult:
             if x[0] == questionId:
                 question = "```" + x[1].decode('utf-8') + "```"
 
         msg = await channel.send(question)
-        nb = [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_b:", ":regional_indicator_c:"]
+        ch = [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:"]
         react = ["\U0001F1E6", "\U0001F1E7", "\U0001F1E8", "\U0001F1E9"]
 
         for x in range(len(react)):
             await msg.add_reaction(react[x])
 
+        juste = 0
         for x in range(4):
             answer = (answerResult[x])[1].decode('utf-8')
             if (answerResult[x])[2] == 1:
                 juste = x
-            question += "\n" + nb[x] + " " + answer
+            question += "\n" + ch[x] + " " + answer
 
         await msg.edit(content=question)
 
         def check(reaction, user):
-            return user == ctx.message.author and (str(reaction.emoji) == react[0] or str(reaction.emoji) == react[1] or str(reaction.emoji) == react[2] or str(reaction.emoji) == react[3])
+            return user == ctx.message.author and (str(reaction.emoji) == react[0] or
+                                                   str(reaction.emoji) == react[1] or
+                                                   str(reaction.emoji) == react[2] or
+                                                   str(reaction.emoji) == react[3])
 
         reaction, user = await client.wait_for('reaction_add', check=check)
         await msg.clear_reactions()
 
         if str(reaction.emoji) == react[juste]:
-            await msg.edit(content=question + "\n\nYES YES YES YES")
+            await msg.edit(content=question + "\n\nBonne réponse ! :white_check_mark:")
         else:
-            await msg.edit(content=question + "\n\nNO NO NO NO")
+            await msg.edit(content=question + "\n\nMauvaise réponse ! :x:")
 
 
 @client.command(pass_context=True)
 async def addquestion(ctx, notion: str):
     channel = ctx.channel
+    ch = [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_b:", ":regional_indicator_c:"]
+    react = ["\U0001F1E6", "\U0001F1E7", "\U0001F1E8", "\U0001F1E9"]
     msg = await channel.send("```Veuillez écrire la question :```")
     res = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     await res.delete()
     await msg.delete()
     msg = await channel.send("```Veuillez indiquer Les 4 différents choix de réponse :```")
     choix = []
+    phrase = ""
+
     for x in range(4):
         res = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        phrase += "\n" + ch[x] + " : " + res.content
         choix.append(res)
+        await res.delete()
+
+    await msg.delete()
+    msg = await channel.send("```Lequel de ces choix est la bonne réponse ?```")
+
+    for x in range(len(react)):
+        await msg.add_reaction(react[x])
+
+    await msg.edit(content=msg + phrase)
+
+    def check(reaction, user):
+        return user == ctx.message.author and (str(reaction.emoji) == react[0] or str(reaction.emoji) == react[1] or str(reaction.emoji) == react[2] or str(reaction.emoji) == react[3])
+
+    reaction, user = await client.wait_for('reaction_add', check=check)
+    await msg.clear_reactions()
+    
 
 
 client.run(token)
